@@ -1,0 +1,19 @@
+﻿@using seminar2blazor20230107220807
+
+<tr>
+    <td><input type="datetime" @bind=@track.Track.Starttime/></td>
+    <td><input type="datetime" @bind=@track.Track.EndTime/></td>
+    <td>
+        <button type="button" name="btnChange" class="btn btn-primary btn-sm"
+                @onclick="() => Change.InvokeAsync(track)">
+            Ändern
+        </button>
+    </td>
+</tr>
+
+@code {
+    [Parameter]
+    public ChangeTrack track { get; set; } = new();
+    [Parameter]
+    public EventCallback<ChangeTrack> Change { get; set; }
+}

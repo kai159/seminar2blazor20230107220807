@@ -1,0 +1,56 @@
+﻿@page "/time"
+@using seminar2blazor20230107220807
+@inject IJSRuntime JSRuntime
+@inject HttpClient http
+@inject ILocalStorageService LocalStorage
+<PageTitle>Login</PageTitle>
+
+@if(@timeTracks != null){
+    <table class="table"><Entries />
+        <thead>
+            <tr>
+                <th>Startzeit</th>
+                <th>Endzeit</th>
+                <th>Ändern</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var data in timeTracks)
+            {
+                <Seminar2Blazor.Components.Entries track="@data" Change="@Change"></Seminar2Blazor.Components.Entries>
+            }
+        </tbody>
+    </table>
+    <button type="button" class="btn btn-primary mt-4">Eintrag hinzufügen</button>
+}
+
+@code {
+    public int userId { get; set; }
+    public List<ChangeTrack> timeTracks { get; set; } = new();
+    protected override async Task OnInitializedAsync()
+    {
+        userId = await LocalStorage.GetItemAsync<int>("id");
+        var list = await http.GetFromJsonAsync<List<TimeTrack>>($"https://seminar2gateway.azure-api.net/service/persons/{userId}/times");
+        foreach(var item in list){
+            timeTracks.Add(new ChangeTrack {
+                Track = new TimeTrack {
+                    PersonId = item.PersonId,
+                    Starttime = item.Starttime,
+                    EndTime = item.EndTime
+                },
+                Start = item.Starttime,
+                End = item.EndTime
+        });
+        }
+
+    }
+
+    private async Task Change(ChangeTrack t){
+        TimeTrack tmp = new TimeTrack {
+                PersonId = t.Track.PersonId,
+                Starttime = t.Start,
+                EndTime = t.End,
+            };
+        var res = await http.PostAsJsonAsync<TimeTrack>($"https://seminar2gateway.azure-api.net/service/persons/{t.Track.PersonId}/times/{t.Track.Starttime}/{t.Track.EndTime}", tmp);
+    }
+}

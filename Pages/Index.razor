@@ -1,9 +1,37 @@
-﻿@page "/"
+﻿@using seminar2blazor20230107220807
+@page "/"
+@inject IJSRuntime JSRuntime
+@inject HttpClient http
+@inject ILocalStorageService LocalStorage
+@inject NavigationManager UriHelper
+<PageTitle>Login</PageTitle>
+<h1>Hello!</h1>
 
-<PageTitle>Index</PageTitle>
+<div class="flex flex-row mt-4">
+    <p class="col-12">Name</p>
+    <input type="text" class="col-6" @bind="personRequest.Personname">
+</div>
+<div class="flex flex-row mt-4">
+    <p class="col-12">Password</p>
+    <input type="password" class="col-6" @bind="personRequest.Passwort">
+</div>
+<button type="button" class="btn btn-primary mt-4" @onclick=Login>Anmelden</button>
 
-<h1>Hello, world!</h1>
 
-Welcome to your new app.
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+@code {
+    PersonRequest personRequest = new();
+
+    private async void Login(){
+        var resultPerson = await http.PostAsJsonAsync<PersonRequest>("https://seminar2gateway.azure-api.net/login/Login", personRequest);
+        var content = await resultPerson.Content.ReadAsStringAsync();
+        var resultToken = await http.GetFromJsonAsync<List<Person>>($"https://seminar2gateway.azure-api.net/service/persons?personname={personRequest.Personname}");
+        if (content != null)
+        {
+            var user = resultToken.FirstOrDefault();
+            await LocalStorage.SetItemAsync("id", user.Id);
+            await LocalStorage.SetItemAsync("token", content);
+            UriHelper.NavigateTo("Time");
+        }
+    }
+}
