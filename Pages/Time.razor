@@ -21,11 +21,23 @@
             }
         </tbody>
     </table>
-    <button type="button" class="btn btn-primary mt-4">Eintrag hinzufügen</button>
 }
+
+<div class="flex flex-row mt-4">
+    <p class="col-12">Kommen</p>
+    <input type="datetime" @bind=@trackTime.Starttime></input>
+</div>
+<div class="flex flex-row mt-4">
+    <p class="col-12">Gehen</p>
+    <input type="datetime" @bind=@trackTime.EndTime></input>
+</div>
+<div class="flex flex-row mt-4">
+    <button type="button" class="btn btn-primary mt-4" onclick=@CreateEntry()>Eintrag hinzufügen</button>
+</div>
 
 @code {
     public int userId { get; set; }
+    public TimeTrack trackTime { get; set; } = new();
     public List<ChangeTrack> timeTracks { get; set; } = new();
     protected override async Task OnInitializedAsync()
     {
@@ -43,6 +55,12 @@
         });
         }
 
+    }
+
+    private async Task CreateEntry()
+    {
+        trackTime.PersonId = userId;
+        var res = await http.PostAsJsonAsync<TimeTrack>($"https://seminar2gateway.azure-api.net/service/persons/{userId}/times", trackTime);
     }
 
     private async Task Change(ChangeTrack t){
